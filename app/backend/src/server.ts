@@ -9,8 +9,6 @@ import { getStore, getStorageMode } from "./db.js";
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
-const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
-const allowVercelAppOrigins = String(process.env.ALLOW_VERCEL_APP_ORIGINS || "false") === "true";
 const sttModel = process.env.STT_MODEL || "whisper-1";
 const llmModel = process.env.LLM_MODEL || "gpt-4o-mini";
 const otpTtlMinutes = Number(process.env.AUTH_CODE_TTL_MINUTES || 10);
@@ -28,28 +26,7 @@ const paymentCurrency = (process.env.PAYMENT_CURRENCY || "xof").toLowerCase();
 const planSessionAmount = Number(process.env.PLAN_SESSION_AMOUNT || 2000);
 const planMonthlyAmount = Number(process.env.PLAN_MONTHLY_AMOUNT || 5000);
 
-const configuredOrigins = frontendOrigin
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
-
-function isAllowedDevOrigin(origin) {
-  return /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
-}
-
-function isAllowedVercelOrigin(origin) {
-  return /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin);
-}
-
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin) return callback(null, true);
-    if (configuredOrigins.includes(origin)) return callback(null, true);
-    if (isAllowedDevOrigin(origin)) return callback(null, true);
-    if (allowVercelAppOrigins && isAllowedVercelOrigin(origin)) return callback(null, true);
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
-  }
-}));
+app.use(cors());
 app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });
